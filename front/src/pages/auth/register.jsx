@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from 'axios'
 
 const Register = (props) => {
 
@@ -7,6 +8,7 @@ const Register = (props) => {
     password: '',
     confirmPassword: ''
   })
+  const [ message, setMessage ] = useState()
 
   const { email, password, confirmPassword } = submitForm
 
@@ -17,15 +19,57 @@ const Register = (props) => {
     }))
   }
 
+  const inputValidation = (email, password, passwordConfirm) => {
+
+    if (!email) {
+      setMessage('Please enter your email')
+      return false
+    }
+    
+    if(!password) {
+      setMessage('Please enter password')
+      return false
+    }
+    
+    if (!passwordConfirm) {
+      setMessage('Please enter confirming password')
+      return false
+    }
+    
+    if(password !== passwordConfirm) {
+      setMessage('Your passwords do not match')
+      return false
+    }
+
+    return true
+  }
+
   const clickHandler = (e) => {
     e.preventDefault()
 
-    console.log('button clicked')
+    if(!inputValidation(email, password, confirmPassword)) {
+      return
+    }
+
+    // TODO: API call
+    const sendOutForm = {
+      email: email,
+      password: password,
+      confirmPassword: confirmPassword
+    }
+
+    const requestToAPI = async (form) => {
+      const request = await axios.post(`${process.env.REACT_APP_BACKEND}/auth/register`, form)
+    }
+
+    requestToAPI(sendOutForm)
   }
+
 
   return (
     <div className='bg-green-900 text-white flex flex-col items-center p-8 gap-4'>
       <p className='font-bold text-xl'>Register Account</p>
+      {message && <p className='text-red-500'>{message}</p>}
       <form className='flex flex-col gap-4' onSubmit={clickHandler}>
         <div>
           <p className='text-xs'>Email</p>
