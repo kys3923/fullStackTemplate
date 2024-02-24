@@ -19,6 +19,15 @@ exports.register = async (req, res) => {
     })
   }
 
+  const foundUser = await User.findOne({email: email})
+
+  if(foundUser) {
+    return res.status(401).json({
+      success: false,
+      message: 'Provided email is aleady taken'
+    })
+  }
+
   try {
     const createdUser = await User.create({
       email,
@@ -44,7 +53,35 @@ exports.register = async (req, res) => {
 // CRUD functions
 
 exports.login = async (req, res) => {
-  return console.log(req.body)
+  const { email, password } = req.body
+
+  try {
+    const user = await User.findOne({email: email}).select('+password')
+
+    if(!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Can not find requested email'
+      })
+    }
+
+    const isMatch = await user.matchPasswords(password)
+
+    if(!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Please check your password again'
+      })
+    }
+
+    sendToken(user, 200, res)
+  } catch (e) {
+    console.log(e)
+    return res.status(500).json({
+      success: false,
+      message: e.message
+    })
+  }
 }
 
 const sendToken = (user, statusCode, res) => {

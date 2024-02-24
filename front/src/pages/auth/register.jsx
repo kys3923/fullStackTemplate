@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 const Register = (props) => {
 
@@ -9,6 +10,7 @@ const Register = (props) => {
     confirmPassword: ''
   })
   const [ message, setMessage ] = useState()
+  const navigate = useNavigate()
 
   const { email, password, confirmPassword } = submitForm
 
@@ -62,16 +64,25 @@ const Register = (props) => {
       try {
         const request = await axios.post(`${process.env.REACT_APP_BACKEND}/auth/register`, form)
   
-        if(request) {
-           console.log(request.data)
+        if(request.data) {
+          sessionStorage.setItem('authToken', request.data.token)
+          sessionStorage.setItem('userId', request.data.userId)
+          navigate('/')
         }
+        
       } catch (error) {
-        console.log(error)
+        setMessage(error.response.data.message)
       }
     }
 
     requestToAPI(sendOutForm)
   }
+
+  useEffect(() => {
+    if(sessionStorage.authToken) {
+      navigate('/')
+    }
+  },[])
 
 
   return (

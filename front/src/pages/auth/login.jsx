@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 
 const Login = (props) => {
 
@@ -8,6 +9,8 @@ const Login = (props) => {
     password: '',
   })
   const [ message, setMessage ] = useState()
+
+  const navigate = useNavigate()
 
   const { email, password } = submitForm
 
@@ -47,11 +50,25 @@ const Login = (props) => {
     }
 
     const requestToAPI = async (form) => {
-      const request = await axios.post(`${process.env.REACT_APP_BACKEND}/auth/login`, form)
-    }
-
+      try {
+        const request = await axios.post(`${process.env.REACT_APP_BACKEND}/auth/login`, form)
+        if(request.data) {
+          sessionStorage.setItem('authToken', request.data.token)
+          sessionStorage.setItem('userId', request.data.userId)
+          navigate('/')
+        }
+      } catch (e) {
+        setMessage(e.response.data.message)
+      }
+    } 
     requestToAPI(sendOutForm)
   }
+
+  useEffect(() => {
+    if(sessionStorage.token) {
+      navigate('/')
+    }
+  },[])
 
   return (
     <div className='bg-green-900 text-white flex flex-col items-center p-8 gap-4'>
